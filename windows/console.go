@@ -8,6 +8,12 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+var handleToFile = map[uint32]*os.File{
+	windows.STD_INPUT_HANDLE:  os.Stdin,
+	windows.STD_OUTPUT_HANDLE: os.Stdout,
+	windows.STD_ERROR_HANDLE:  os.Stderr,
+}
+
 // GetHandleInfo returns file descriptor and bool indicating whether the file is a console.
 func GetHandleInfo(in interface{}) (uintptr, bool) {
 	switch t := in.(type) {

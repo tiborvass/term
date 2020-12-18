@@ -3,11 +3,13 @@
 package windowsconsole
 
 import (
+	"fmt"
 	"io"
 	"os"
 
 	ansiterm "github.com/Azure/go-ansiterm"
 	"github.com/Azure/go-ansiterm/winterm"
+	"golang.org/x/sys/windows"
 )
 
 // ansiWriter wraps a standard output file (e.g., os.Stdout) providing ANSI sequence translation.
@@ -23,8 +25,12 @@ type ansiWriter struct {
 
 // NewAnsiWriter returns an io.Writer that provides VT100 terminal emulation on top of a
 // Windows console output handle.
-func NewAnsiWriter(nFile int) io.Writer {
-	file, fd := winterm.GetStdFile(nFile)
+func NewAnsiWriter(nFile uint32) io.Writer {
+	fd, err := windows.GetStdHandle(nFile)
+	file, ok := handleToFile[nFile]
+	if err != nil || !ok {
+		panic(fmt.Errorf("Invalid standard handle: %v (file=%v)", nFile, file))
+	}
 	info, err := winterm.GetConsoleScreenBufferInfo(fd)
 	if err != nil {
 		return nil

@@ -13,6 +13,7 @@ import (
 
 	ansiterm "github.com/Azure/go-ansiterm"
 	"github.com/Azure/go-ansiterm/winterm"
+	"golang.org/x/sys/windows"
 )
 
 const (
@@ -30,8 +31,12 @@ type ansiReader struct {
 
 // NewAnsiReader returns an io.ReadCloser that provides VT100 terminal emulation on top of a
 // Windows console input handle.
-func NewAnsiReader(nFile int) io.ReadCloser {
-	file, fd := winterm.GetStdFile(nFile)
+func NewAnsiReader(nFile uint32) io.ReadCloser {
+	fd, err := windows.GetStdHandle(nFile)
+	file, ok := handleToFile[nFile]
+	if err != nil || !ok {
+		panic(fmt.Errorf("Invalid standard handle: %v (file=%v)", nFile, file))
+	}
 	return &ansiReader{
 		file:    file,
 		fd:      fd,
